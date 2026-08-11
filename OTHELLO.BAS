@@ -116,19 +116,20 @@ WHILE 1
 
  IF P(X,Y)==0 THEN 
  
-  IF P(X-1,Y-1)=0 AND P(X-1,Y)=0 AND P(X-1,Y+1)=0 AND P(X  ,Y-1)=0 AND P(X  ,Y)=0 AND P(X  ,Y+1)=0 AND P(X+1,Y-1)=0 AND P(X+1,Y)=0 AND P(X+1,Y+1)=0 THEN 
+  IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN 
    GOSUB PRTERR
    CONTINUE
   ENDIF
 
   G=0
 
+  REM UP/LEFT
   V=Y
   FOR I=X-1 TO 1 STEP -1
    V=V-1
    IF V<1 THEN BREAK
    IF P(I,V)!=0 THEN
-    IF P(I,V)=T THEN
+    IF P(I,V)==T THEN
      FOR K=I+1 TO X-1
       V=V+1
       P(K,V)=T
@@ -141,15 +142,16 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM UP/RIGHT
   V=Y
   FOR I=X+1 TO N
    V=V-1
    IF V<1 THEN BREAK
    IF P(I,V)!=0 THEN
-    IF P(I,V)=T THEN
+    IF P(I,V)==T THEN
      FOR K=I-1 TO X+1 STEP -1
       V=V+1
-      P(K,V)= T
+      P(K,V)=T
       G=1
      NEXT
      BREAK
@@ -159,12 +161,13 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM DOWN/LEFT
   V=Y
   FOR I=X-1 TO 1 STEP -1
    V=V+1
    IF V>N THEN BREAK
    IF P(I,V)!=0 THEN
-    IF P(I,V)=T THEN
+    IF P(I,V)==T THEN
      FOR K=I+1 TO X-1
       V=V-1
       P(K,V)=T
@@ -177,15 +180,16 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM DOWN/RIGHT
   V=Y
   FOR I=X+1 TO N
    V=V+1
    IF V>N THEN BREAK
    IF P(I,V)!=0 THEN
-    IF P(I,V)=T THEN
+    IF P(I,V)==T THEN
      FOR K=I-1 TO X+1 STEP -1
       V=V-1
-      P(K,V)= T
+      P(K,V)=T
       G=1
      NEXT
      BREAK
@@ -195,9 +199,10 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM LEFT
   FOR I=X-1 TO 1 STEP -1
    IF P(I,Y)!=0 THEN
-    IF P(I,Y)=T THEN
+    IF P(I,Y)==T THEN
      FOR K=I+1 TO X-1
       P(K,Y)=T
       G=1
@@ -209,11 +214,12 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM RIGHT
   FOR I=X+1 TO N
    IF P(I,Y)!=0 THEN
-    IF P(I,Y)=T THEN
+    IF P(I,Y)==T THEN
      FOR K=I-1 TO X+1 STEP -1
-      P(K,Y)= T
+      P(K,Y)=T
       G=1
      NEXT
      BREAK
@@ -223,10 +229,10 @@ WHILE 1
    ENDIF
   NEXT
 
-
+  REM UP
   FOR J=Y-1 TO 1 STEP -1
    IF P(X,J)!=0 THEN
-    IF P(X,J)=T THEN
+    IF P(X,J)==T THEN
      FOR L=J+1 TO Y-1
       P(X,L)=T
       G=1
@@ -238,9 +244,10 @@ WHILE 1
    ENDIF
   NEXT
 
+  REM DOWN
   FOR J=Y+1 TO N
    IF P(X,J)!=0 THEN
-    IF P(X,J)=T THEN
+    IF P(X,J)==T THEN
      FOR L=J-1 TO Y+1 STEP -1
       P(X,L)=T
       G=1
@@ -310,26 +317,35 @@ RETURN
 
 
 LABEL PRTEXP
- CURSOR 31,3
- PRINT CHR$($1E);CHR$($1C);":Grid";CHR$($1E)
- CURSOR 31,4
- PRINT CHR$($1F);CHR$($1D);":Grid";CHR$($1F)
- CURSOR 31,6
+ VAR X,Y
+ X=31
+ Y=3
+
+ CURSOR 31,Y
+ PRINT CHR$($1E);CHR$($1C);":Grid +"
+ CURSOR 31,Y+1
+ PRINT CHR$($1F);CHR$($1D);":Grid -"
+ CURSOR 31,Y+3
  PRINT "FIRE:"
- CURSOR 31,7
+ CURSOR 31,Y+4
  PRINT " Change"
- CURSOR 31,9
+ CURSOR 31,Y+6
  PRINT "Press"
- CURSOR 31,10
+ CURSOR 31,Y+7
  PRINT " START"
 RETURN
+
 
 LABEL PIECE
  CIRCLEFILL D+(ARGS(1)-1)*U+U/2,D+(ARGS(2)-1)*U+U/2,U/2-2,ARGS(3)
 RETURN
 
+
 LABEL PRTTRN
- CURSOR 31,1
+ VAR X,Y
+ X=31
+ Y=1
+ CURSOR X,Y
  IF ARGS(1)==1 THEN
   PRINT "[White]"
  ELSE
@@ -337,31 +353,43 @@ LABEL PRTTRN
  ENDIF
 RETURN
 
+
 LABEL PRTERR
-  CURSOR 31,15
-  PRINT "ERROR!"
-  SOUND NGSND
-  WAIT 60
-  CURSOR 31,15
-  PRINT "      "
+ VAR X,Y
+ X=31
+ Y=15
+ CURSOR X,Y
+ PRINT "ERROR!"
+ SOUND NGSND
+ WAIT 60
+ CURSOR X,Y
+ PRINT "      "
 RETURN
+
 
 LABEL PRTSTA
-  CURSOR 31,15
-  PRINT "GAME"
-  CURSOR 31,16
-  PRINT "START"
-  WAIT 60
-  CURSOR 31,15
-  PRINT "    "
-  CURSOR 31,16
-  PRINT "     "
+ VAR X,Y
+ X=31
+ Y=15
+ CURSOR X,Y
+ PRINT "GAME"
+ CURSOR X,Y+1
+ PRINT "START"
+ WAIT 60
+ CURSOR X,Y+2
+ PRINT "    "
+ CURSOR X,Y+3
+ PRINT "     "
 RETURN
 
+
 LABEL PRTSKP
-  CURSOR 31,15
-  PRINT "SKIP"
-  WAIT 60
-  CURSOR 31,15
-  PRINT "    "
+ VAR X,Y
+ X=31
+ Y=15
+ CURSOR X,Y
+ PRINT "SKIP"
+ WAIT 60
+ CURSOR X,Y
+ PRINT "    "
 RETURN
