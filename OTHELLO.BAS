@@ -78,8 +78,8 @@ WHILE 1
    PRINT "Black WiN"
   ELSE
    PRINT "DRAW GAME"
-  ENDIF
-  WHILE KEYS()==0:WEND
+  ENDIF 
+ WHILE KEYS()==0:WEND
   BREAK
  ENDIF
 
@@ -91,19 +91,41 @@ WHILE 1
  PRINT "Y="
 
 
- WHILE 0==TSC2046::POLLING()
-  Z=KEYS()
-  IF Z==32 THEN
+ IF T==1 THEN
+  WHILE 0==TSC2046::POLLING()
+   Z=KEYS()
+   IF Z==32 THEN
+    GOSUB PRTSKP
+    WHILE 0!=KEYS():WEND
+    T=-T
+    GOSUB PRTTRN,T
+    BREAK
+   ENDIF
+  WEND
+  IF Z==32 THEN CONTINUE
+  WHILE 1==TSC2046::TOUCH():WEND
+  X=(TSC2046::lastx-D)/U+1
+  Y=(TSC2046::lasty-D)/U+1
+ ELSE
+  FOR X=1 TO N
+   FOR Y=1 TO N
+    G=GOSUB(CHKDSC,X,Y)
+    IF G==1 THEN BREAK
+   NEXT
+   IF G==1 THEN BREAK
+  NEXT
+  IF G==0 THEN
    GOSUB PRTSKP
-   WHILE 0!=KEYS():WEND
+   SOUND TRNSND
+   WAIT 60
    T=-T
    GOSUB PRTTRN,T
    CONTINUE
   ENDIF
- WEND
- WHILE 1==TSC2046::TOUCH():WEND
- X=(TSC2046::lastx-D)/U+1
- Y=(TSC2046::lasty-D)/U+1
+  WAIT 30
+ ENDIF
+ G=0
+
 
  CURSOR 31+2,3
  REM X=VAL(INPUT$())
@@ -114,6 +136,7 @@ WHILE 1
  IF Y<1 OR Y>N THEN CONTINUE
  PRINT Y
 
+
  IF P(X,Y)==0 THEN 
  
   IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN 
@@ -123,7 +146,7 @@ WHILE 1
 
   G=0
 
-  REM UP/LEFT
+  REM DOWN/LEFT
   V=Y
   FOR I=X-1 TO 1 STEP -1
    V=V-1
@@ -142,7 +165,7 @@ WHILE 1
    ENDIF
   NEXT
 
-  REM UP/RIGHT
+  REM DOWN/RIGHT
   V=Y
   FOR I=X+1 TO N
    V=V-1
@@ -161,7 +184,7 @@ WHILE 1
    ENDIF
   NEXT
 
-  REM DOWN/LEFT
+  REM UP/LEFT
   V=Y
   FOR I=X-1 TO 1 STEP -1
    V=V+1
@@ -180,7 +203,7 @@ WHILE 1
    ENDIF
   NEXT
 
-  REM DOWN/RIGHT
+  REM UP/RIGHT
   V=Y
   FOR I=X+1 TO N
    V=V+1
@@ -286,6 +309,8 @@ DATA $31000,1
 LABEL NGSND
 DATA $83000,1
 
+LABEL TRNSND
+DATA $52000,1
 
 LABEL DRWGRD
  D=0
@@ -393,3 +418,150 @@ LABEL PRTSKP
  CURSOR X,Y
  PRINT "    "
 RETURN
+
+
+LABEL CHKDSC
+ VAR X,Y,G,V,K,I,J
+ X=ARGS(1)
+ Y=ARGS(2)
+
+
+ G=0
+
+ IF P(X,Y)!=0 THEN RETURN 0
+
+
+ IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN RETURN 0
+
+
+ REM DOWN/LEFT
+ V=Y
+ FOR I=X-1 TO 1 STEP -1
+  V=V-1
+  IF V<1 THEN BREAK
+  IF P(I,V)!=0 THEN
+   IF P(I,V)==T THEN
+    FOR K=I+1 TO X-1
+     V=V+1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+
+ REM DOWN/RIGHT
+ V=Y
+ FOR I=X+1 TO N
+  V=V-1
+  IF V<1 THEN BREAK
+  IF P(I,V)!=0 THEN
+   IF P(I,V)==T THEN
+    FOR K=I-1 TO X+1 STEP -1
+     V=V+1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM UP/LEFT
+ V=Y
+ FOR I=X-1 TO 1 STEP -1
+  V=V+1
+  IF V>N THEN BREAK
+  IF P(I,V)!=0 THEN
+   IF P(I,V)==T THEN
+    FOR K=I+1 TO X-1
+     V=V-1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM UP/RIGHT
+ V=Y
+ FOR I=X+1 TO N
+  V=V+1
+  IF V>N THEN BREAK
+  IF P(I,V)!=0 THEN
+   IF P(I,V)==T THEN
+    FOR K=I-1 TO X+1 STEP -1
+     V=V-1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM LEFT
+ FOR I=X-1 TO 1 STEP -1
+  IF P(I,Y)!=0 THEN
+   IF P(I,Y)==T THEN
+    FOR K=I+1 TO X-1
+     P(K,Y)=T
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM RIGHT
+ FOR I=X+1 TO N
+  IF P(I,Y)!=0 THEN
+   IF P(I,Y)==T THEN
+    FOR K=I-1 TO X+1 STEP -1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM UP
+ FOR J=Y-1 TO 1 STEP -1
+  IF P(X,J)!=0 THEN
+   IF P(X,J)==T THEN
+    FOR L=J+1 TO Y-1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+ REM DOWN
+ FOR J=Y+1 TO N
+  IF P(X,J)!=0 THEN
+   IF P(X,J)==T THEN
+    FOR L=J-1 TO Y+1 STEP -1
+     G=1
+    NEXT
+    BREAK
+   ENDIF
+  ELSE
+   BREAK
+  ENDIF
+ NEXT
+
+RETURN G
