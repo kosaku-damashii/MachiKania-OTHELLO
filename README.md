@@ -1,4 +1,5 @@
 # MachiKania-OTHELLO
+<img width="900" height="675" alt="image" src="https://github.com/user-attachments/assets/4d771ada-28d0-4a23-9fb9-8fae62140608" />
 
 MachiKania type Pで動作するオセロゲーム。<BR>
 <BR>
