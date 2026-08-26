@@ -3,6 +3,8 @@ REM OTHELLO.BAS
 USECLASS TSC2046
 
 USEGRAPHIC 5
+USEVAR XM,YM,GM
+
 CLS
 TSC2046::INIT(3,0)
 REM TSC2046::MINMAX()
@@ -86,10 +88,8 @@ WHILE 1
 
 
  GOSUB PRTTRN,T
- CURSOR 31,3
- PRINT "X="
- CURSOR 31,4
- PRINT "Y="
+ CURSOR 31,3:PRINT "X="
+ CURSOR 31,4:PRINT "Y="
 
 
  IF T==F THEN
@@ -109,27 +109,31 @@ WHILE 1
   X=(TSC2046::lastx-D)/U+1
   Y=(TSC2046::lasty-D)/U+1
  ELSE
+  GM=0:YM=0:GM=0
   FOR X=1 TO N
    FOR Y=1 TO N
-    G=GOSUB(CHKDSC,X,Y,T)
-    IF G==1 THEN BREAK
+    G=GOSUB(CHKDSC,X,Y,T,0)
+    IF G!=0 THEN
+     IF G>GM THEN
+      XM=X:YM=Y:GM=G
+     ENDIF
+    ENDIF
    NEXT
-   IF G==1 THEN BREAK
   NEXT
-  IF G==0 THEN
+  IF GM!=0 THEN
+   X=XM:Y=YM
+  ELSE
    WAIT 30
    SOUND TRNSND
    GOSUB PRTPAS
    T=-T
    GOSUB PRTTRN,T
-
-
    FOR X=1 TO N
     FOR Y=1 TO N
-     G=GOSUB(CHKDSC,X,Y,T)
-     IF G==1 THEN BREAK
+     G=GOSUB(CHKDSC,X,Y,T,0)
+     IF G!=0 THEN BREAK
     NEXT
-    IF G==1 THEN BREAK
+    IF G!=0 THEN BREAK
    NEXT
    IF G==0 THEN
     CURSOR 31,17
@@ -141,25 +145,21 @@ WHILE 1
  ENDIF
 
 
- CURSOR 31+2,3
  REM X=VAL(INPUT$())
  IF X<1 OR X>N THEN CONTINUE
- PRINT X
- CURSOR 31+2,4
+ CURSOR 31+2,3:PRINT X
  REM Y=VAL(INPUT$())
  IF Y<1 OR Y>N THEN CONTINUE
- PRINT Y
+ CURSOR 31+2,4:PRINT Y
 
 
- G=GOSUB(SELDSC,X,Y)
+ G=GOSUB(CHKDSC,X,Y,T,1)
 
- IF G=1 THEN 
+ IF G!=0 THEN 
   P(X,Y)=T
-  CURSOR 31+2,3
-  PRINT X
-  CURSOR 31+2,4
-  PRINT Y
-  SOUND OKSND
+  CURSOR 31+2,3:PRINT X
+  CURSOR 31+2,4:PRINT Y
+REM  SOUND OKSND
   T=-T
  ELSE
    GOSUB PRTERR
@@ -196,6 +196,7 @@ LABEL INIT
  P(X+1,Y)=-1
  P(X,Y+1)=-1
 RETURN
+
 
 LABEL DRWGRD
  D=0
@@ -235,14 +236,10 @@ LABEL PRTEXP
  PRINT CHR$($1E);CHR$($1C);":Grid +"
  CURSOR 31,Y+1
  PRINT CHR$($1F);CHR$($1D);":Grid -"
- CURSOR 31,Y+3
- PRINT "FIRE:"
- CURSOR 31,Y+4
- PRINT " Change"
- CURSOR 31,Y+6
- PRINT "Press"
- CURSOR 31,Y+7
- PRINT " START"
+ CURSOR 31,Y+3:PRINT "FIRE:"
+ CURSOR 31,Y+4:PRINT " Change"
+ CURSOR 31,Y+6:PRINT "Press"
+ CURSOR 31,Y+7:PRINT " START"
 RETURN
 
 
@@ -268,12 +265,10 @@ LABEL PRTERR
  VAR X,Y
  X=31
  Y=15
- CURSOR X,Y
- PRINT "ERROR!"
+ CURSOR X,Y:PRINT "ERROR!"
  SOUND NGSND
  WAIT 60
- CURSOR X,Y
- PRINT "      "
+ CURSOR X,Y:PRINT "      "
 RETURN
 
 
@@ -281,15 +276,11 @@ LABEL PRTSTA
  VAR X,Y
  X=31
  Y=15
- CURSOR X,Y
- PRINT "GAME"
- CURSOR X,Y+1
- PRINT " START"
+ CURSOR X,Y  :PRINT "GAME"
+ CURSOR X,Y+1:PRINT " START"
  WAIT 60
- CURSOR X,Y+2
- PRINT "    "
- CURSOR X,Y+3
- PRINT "     "
+ CURSOR X,Y+2:PRINT "    "
+ CURSOR X,Y+3:PRINT "      "
 RETURN
 
 
@@ -305,200 +296,30 @@ LABEL PRTMV
  PRINT "         "
 RETURN
 
+
 LABEL PRTPAS
  VAR X,Y
  X=31
  Y=15
- CURSOR X,Y
- PRINT "PASS"
+ CURSOR X,Y:PRINT "PASS"
  WAIT 60
- CURSOR X,Y
- PRINT "    "
+ CURSOR X,Y:PRINT "    "
 RETURN
 
 
-LABEL SELDSC
- VAR X,Y,G,V,K,I,J
- X=ARGS(1)
- Y=ARGS(2)
-
- G=0
- IF P(X,Y)==0 THEN 
- 
-  IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN 
-   RETURN G
-  ENDIF
-
-  G=0
-
-  REM UP/LEFT
-  V=Y
-  FOR I=X-1 TO 1 STEP -1
-   V=V-1
-   IF V<1 THEN BREAK
-   IF P(I,V)!=0 THEN
-    IF P(I,V)==T THEN
-     FOR K=I+1 TO X-1
-      V=V+1
-      P(K,V)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM UP/RIGHT
-  V=Y
-  FOR I=X+1 TO N
-   V=V-1
-   IF V<1 THEN BREAK
-   IF P(I,V)!=0 THEN
-    IF P(I,V)==T THEN
-     FOR K=I-1 TO X+1 STEP -1
-      V=V+1
-      P(K,V)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM DOWN/LEFT
-  V=Y
-  FOR I=X-1 TO 1 STEP -1
-   V=V+1
-   IF V>N THEN BREAK
-   IF P(I,V)!=0 THEN
-    IF P(I,V)==T THEN
-     FOR K=I+1 TO X-1
-      V=V-1
-      P(K,V)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM DOWN/RIGHT
-  V=Y
-  FOR I=X+1 TO N
-   V=V+1
-   IF V>N THEN BREAK
-   IF P(I,V)!=0 THEN
-    IF P(I,V)==T THEN
-     FOR K=I-1 TO X+1 STEP -1
-      V=V-1
-      P(K,V)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM LEFT
-  FOR I=X-1 TO 1 STEP -1
-   IF P(I,Y)!=0 THEN
-    IF P(I,Y)==T THEN
-     FOR K=I+1 TO X-1
-      P(K,Y)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-
-  REM LEFT
-  FOR I=X-1 TO 1 STEP -1
-   IF P(I,Y)!=0 THEN
-    IF P(I,Y)==T THEN
-     FOR K=I+1 TO X-1
-      P(K,Y)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM RIGHT
-  FOR I=X+1 TO N
-   IF P(I,Y)!=0 THEN
-    IF P(I,Y)==T THEN
-     FOR K=I-1 TO X+1 STEP -1
-      P(K,Y)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM UP
-  FOR J=Y-1 TO 1 STEP -1
-   IF P(X,J)!=0 THEN
-    IF P(X,J)==T THEN
-     FOR L=J+1 TO Y-1
-      P(X,L)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
-
-  REM DOWN
-  FOR J=Y+1 TO N
-   IF P(X,J)!=0 THEN
-    IF P(X,J)==T THEN
-     FOR L=J-1 TO Y+1 STEP -1
-      P(X,L)=T
-      G=1
-     NEXT
-     BREAK
-    ENDIF
-   ELSE
-    BREAK
-   ENDIF
-  NEXT
- ENDIF
-
-RETURN G
-
-
 LABEL CHKDSC
- VAR X,Y,G,V,K,I,J,T
- X=ARGS(1)
- Y=ARGS(2)
- T=ARGS(3)
+ VAR X,Y,G,V,K,I,J,T,C
+ X=ARGS(1):  REM X
+ Y=ARGS(2):  REM Y 
+ T=ARGS(3):  REM Turn
+ R=ARGS(4):  REM 1:Draw,0:Not Draw
 
  G=0
 
  IF P(X,Y)!=0 THEN RETURN 0
 
 
- IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN RETURN 0
+ IF P(X-1,Y-1)==0 AND P(X-1,Y)==0 AND P(X-1,Y+1)==0 AND P(X  ,Y-1)==0 AND P(X  ,Y+1)==0 AND P(X+1,Y-1)==0 AND P(X+1,Y)==0 AND P(X+1,Y+1)==0 THEN RETURN 0
 
 
  REM UP/LEFT
@@ -510,7 +331,8 @@ LABEL CHKDSC
    IF P(I,V)==T THEN
     FOR K=I+1 TO X-1
      V=V+1
-     G=1
+     IF R==1 THEN P(K,V)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -529,7 +351,8 @@ LABEL CHKDSC
    IF P(I,V)==T THEN
     FOR K=I-1 TO X+1 STEP -1
      V=V+1
-     G=1
+     IF R==1 THEN P(K,V)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -547,7 +370,8 @@ LABEL CHKDSC
    IF P(I,V)==T THEN
     FOR K=I+1 TO X-1
      V=V-1
-     G=1
+     IF R==1 THEN P(K,V)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -565,7 +389,8 @@ LABEL CHKDSC
    IF P(I,V)==T THEN
     FOR K=I-1 TO X+1 STEP -1
      V=V-1
-     G=1
+     IF R==1 THEN P(K,V)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -579,7 +404,8 @@ LABEL CHKDSC
   IF P(I,Y)!=0 THEN
    IF P(I,Y)==T THEN
     FOR K=I+1 TO X-1
-     G=1
+     IF R==1 THEN P(K,Y)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -593,7 +419,8 @@ LABEL CHKDSC
   IF P(I,Y)!=0 THEN
    IF P(I,Y)==T THEN
     FOR K=I-1 TO X+1 STEP -1
-     G=1
+     IF R==1 THEN P(K,Y)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -607,7 +434,8 @@ LABEL CHKDSC
   IF P(X,J)!=0 THEN
    IF P(X,J)==T THEN
     FOR L=J+1 TO Y-1
-     G=1
+     IF R==1 THEN P(X,L)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -621,7 +449,8 @@ LABEL CHKDSC
   IF P(X,J)!=0 THEN
    IF P(X,J)==T THEN
     FOR L=J-1 TO Y+1 STEP -1
-     G=1
+     IF R==1 THEN P(X,L)=T
+     G=G+1
     NEXT
     BREAK
    ENDIF
@@ -629,5 +458,16 @@ LABEL CHKDSC
    BREAK
   ENDIF
  NEXT
+
+ IF R==1 AND G!=0 AND T!=0 THEN
+  IF T==1 THEN
+   C=7
+  ELSE
+   C=0
+  ENDIF
+  GOSUB PIECE,X,Y,C
+  SOUND OKSND
+  WAIT 50
+ ENDIF
 
 RETURN G
