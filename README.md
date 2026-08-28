@@ -1,5 +1,8 @@
 # MachiKania-OTHELLO
-MachiKania type Pで動作するオセロゲーム。<BR>
+[MachiKania type P](http://www.ze.em-net.ne.jp/~kenken/machikania/typep.html)で動作するオセロゲーム。<BR>
+<BR>
+
+
 <img width="900" height="675" alt="image" src="https://github.com/user-attachments/assets/4d771ada-28d0-4a23-9fb9-8fae62140608" />
 <BR>
 ・操作方法<BR>
@@ -12,5 +15,5 @@ STARTボタン：ゲーム開始。<BR>
 LCD画面をタッチ：ディスクの置き場所を指定する。<BR>
 FIREボタン：パス。<BR>
 <BR>
-･内部構造の説明<BR>
+・内部構造の説明<BR>
 配列Pは､(0～N+1) x (0～N+1) のマトリックスになっているが、タッチペンで指定できる範囲は、0～Nの範囲で周囲の1升は常に0になっている。これは周囲にディスクがあるかどうかを判定する処理を簡略化するための工夫。
